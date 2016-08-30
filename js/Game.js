@@ -33,6 +33,8 @@ PlatformerGame.Game.prototype = {
         this.player.frame = 0; 
         this.player.direction = 1;
         this.player.crouched = false;
+        this.player.actuallyCrouched = false;
+
 
         //  We need to enable physics on the player
         this.game.physics.arcade.enable(this.player);
@@ -50,6 +52,7 @@ PlatformerGame.Game.prototype = {
         this.player.animations.add('idle', [2,2,2,2,2,2,13,13,2,2,2,2,2,2,2,2,2,2,2,2,2,13,13,2,2,2,2,2,2,1,1,2,2,1,1,2,2,13,13,2,2,2,2,2,2,2,2,2,2,13,2,2,2,2,2,2,2,2,1,1,2,3,4,5,6,5,2,2,2,2,2,2,13,13,2,2,2,2], 4, true);
         this.player.animations.add('left', [7,8,9,10], 10, true);
         this.player.animations.add('right', [7,8,9,10], 10, true);
+        this.player.animations.add('crouch', [14,15], 6, false);
 
         this.player.tintCooldown = 0;
         this.player.damageCooldown = 0;
@@ -440,6 +443,9 @@ PlatformerGame.Game.prototype = {
                 if (this.player.crouched) {
                     this.laserArray[this.currentLaser].y += 5;
                 }
+                if (this.player.actuallyCrouched) {
+                    this.laserArray[this.currentLaser].y += 12;
+                }
                 this.laserArray[this.currentLaser].direction = this.player.direction;
                 
                 this.laserArray[this.currentLaser].body.velocity.x = 500 * this.player.direction;
@@ -458,7 +464,7 @@ PlatformerGame.Game.prototype = {
         else if (key == this.key_Q) {
             /*
             this.player.boots = this.noBoots;
-            console.log("swapped to noboots");
+            0.0.log("swapped to noboots");
             this.icon_boot.frame = 0;
             */
         }
@@ -501,6 +507,9 @@ PlatformerGame.Game.prototype = {
         }
         else {
             this.laserGun.y = -10;
+        }
+        if (this.player.actuallyCrouched) {
+            this.laserGun.y = 7;
         }
 
         if (this.rocketBootsCooldown > 0) {
@@ -668,6 +677,7 @@ PlatformerGame.Game.prototype = {
             this.player.direction = -1;
 
             this.player.animations.play('left');
+            this.player.actuallyCrouched = false;
         }
         else if (this.cursors.right.isDown)
         {
@@ -678,11 +688,14 @@ PlatformerGame.Game.prototype = {
             this.player.direction = 1;
 
             this.player.animations.play('right');
+            this.player.actuallyCrouched = false;
         }
         else
         {
             //  Stand still
-            this.player.animations.play('idle');
+            if (!this.player.actuallyCrouched) {
+               this.player.animations.play('idle');
+            }
 
             
         }
@@ -700,17 +713,27 @@ PlatformerGame.Game.prototype = {
     crouch: function(key) {
         if(!this.dead) {
             this.player.crouched = true;
+            if (this.player.body.velocity.x == 0) {
+                if(!this.player.actuallyCrouched) {
+                    this.player.actuallyCrouched = true;
+                    this.player.animations.play("crouch");
+                }
+            }
+            else {
+                this.player.actuallyCrouched = false;
+            }
         }
     },
     notCrouch: function(key) {
         if(!this.dead) {
             this.player.crouched = false;
+            this.player.actuallyCrouched = false;
         }
     },
     jump: function(key) {
 
         if(!this.dead) {
-      
+            this.player.actuallyCrouched = false;
             if (!this.player.body.blocked.down) {
                 if(this.player.boots == this.rocketBoots && this.rocketBootsCooldown < 1) {
                     this.player.body.velocity.y = this.player.boots;
@@ -1010,7 +1033,7 @@ PlatformerGame.Game.prototype = {
             darkness2.alpha = 0;
             darkness2.anchor.setTo(0.5);
 
-            var tween = this.game.add.tween(darkness2).to( { alpha: 1 }, 5500);
+            var tween = this.game.add.tween(darkness2).to( { alpha: 1 }, 5000);
             tween.start();
             this.game.world.bringToTop(this.player);
             this.player.body.velocity.x = 0;
