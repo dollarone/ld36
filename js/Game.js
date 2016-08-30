@@ -1033,7 +1033,7 @@ PlatformerGame.Game.prototype = {
             darkness2.alpha = 0;
             darkness2.anchor.setTo(0.5);
 
-            var tween = this.game.add.tween(darkness2).to( { alpha: 1 }, 5000);
+            var tween = this.game.add.tween(darkness2).to( { alpha: 1 }, 3500);
             tween.start();
             this.game.world.bringToTop(this.player);
             this.player.body.velocity.x = 0;
